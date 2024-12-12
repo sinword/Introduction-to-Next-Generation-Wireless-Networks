@@ -36,7 +36,7 @@ class Server:
                 continue  # Keep listening for other connections
 
             print(f"New connection from {client_address}")
-            client_socket.send("Welcome! Please enter your username:".encode())
+            client_socket.send("Welcome!".encode())
 
             # Validate username
             while True:
@@ -46,7 +46,7 @@ class Server:
                         client_socket.send("Name accepted!".encode())
                         break
                     else:
-                        client_socket.send("Name already in use. Please enter a different name:".encode())
+                        client_socket.send("Name already in use. Please enter a different name.".encode())
                 except socket.error:
                     print(f"Error receiving username from {client_address}.")
                     client_socket.close()
@@ -76,7 +76,11 @@ class Server:
                     client_socket.close()
                     break  # Exit the loop and stop handling this client
                 else:
-                    self.broadcast_message(client_name, f"{client_name}: {message}")
+                    # Prepend the username to the message
+                    formatted_message = f"{client_name}: {message}"
+                    # Alice sent: Hi everyone! 
+                    print(f"{client_name} sent: {message}")
+                    self.broadcast_message(client_name, formatted_message)
             except (ConnectionResetError, BrokenPipeError, OSError):
                 # Handle cases where the connection is forcibly closed
                 print(f"{client_name} has disconnected unexpectedly.")
@@ -87,8 +91,8 @@ class Server:
 
     def broadcast_message(self, sender_name, message):
         for client in self.Clients:
-            if client["client_name"] != sender_name:
-                client["client_socket"].send(message.encode())
+            # if client["client_name"] != sender_name:
+            client["client_socket"].send(message.encode())
 
 if __name__ == "__main__":
     server = Server("127.0.0.1", 12345)

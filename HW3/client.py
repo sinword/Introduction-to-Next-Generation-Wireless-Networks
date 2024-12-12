@@ -20,7 +20,7 @@ class Client:
 
         # Send and validate username
         while True:
-            self.name = input("Enter your name: ")
+            self.name = input("Please enter your username: ")
             self.socket.send(self.name.encode())
             response = self.socket.recv(1024).decode()
             if "Name accepted!" in response:
@@ -32,21 +32,36 @@ class Client:
         Thread(target=self.receive_message).start()
         self.send_message()
 
-
     def send_message(self):
         while True:
+            # Display the prompt dynamically
+            sys.stdout.write(f"{self.name}: ")
+            sys.stdout.flush()
             message = input()
+
             if message.strip().lower() == "exit":
                 self.socket.send("exit".encode())
-                print("You left the chat.\n Disconnected from server.")
+                print("You left the chat.\nDisconnected from server.")
                 os._exit(0)
+
+            # Send the plain message to the server
             self.socket.send(message.encode())
+
+            # Clear the input line after sending the message
+            sys.stdout.write("\033[F\033[K")  # Move up and clear line
+            sys.stdout.flush()
 
     def receive_message(self):
         while True:
             try:
                 server_message = self.socket.recv(1024).decode()
-                print(server_message)
+                if not server_message:
+                    raise ConnectionResetError
+                # Clear the current input line, display server message, and re-prompt
+                sys.stdout.write("\r\033[K")  # Clear the current line
+                sys.stdout.write(f"{server_message}\n")  # Print server message
+                sys.stdout.write(f"{self.name}: ")  # Re-display prompt
+                sys.stdout.flush()
             except (ConnectionResetError, OSError):
                 print("Disconnected from server.")
                 os._exit(0)
